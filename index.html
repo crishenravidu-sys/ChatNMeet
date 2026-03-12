@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatNMeet - ඔබේ ආදරය මෙතනින් පටන් ගනී</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg: #0F1419;
+            --bg-secondary: #1A1F25;
+            --fg: #FFFFFF;
+            --fg-muted: #8B95A1;
+            --accent: #FF6B6B;
+            --accent-secondary: #4ECDC4;
+            --card: #1E252D;
+            --card-hover: #252D36;
+            --border: #2D363F;
+            --success: #10B981;
+            --warning: #F59E0B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans Sinhala', 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .font-display {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Animated Background */
+        .bg-pattern {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 107, 107, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 100%, rgba(78, 205, 196, 0.1), transparent),
+                var(--bg);
+        }
+
+        .floating-hearts {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .heart-particle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            opacity: 0.1;
+            animation: floatHeart 20s infinite linear;
+        }
+
+        @keyframes floatHeart {
+            0% {
+                transform: translateY(100vh) rotate(0deg) scale(0.5);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.1;
+            }
+            90% {
+                opacity: 0.1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Navigation */
+        .nav-container {
+            backdrop-filter: blur(20px);
+            background: rgba(15, 20, 25, 0.8);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-item {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-item:hover::after,
+        .nav-item.active::after {
+            width: 100%;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        /* Cards */
+        .profile-card {
+            background: var(--card);
+            border-radius: 24px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--border);
+        }
+
+        .profile-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .swipe-card {
+            background: var(--card);
+            border-radius: 32px;
+            overflow: hidden;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            border: 1px solid var(--border);
+        }
+
+        .swipe-card.swiping-left {
+            transform: translateX(-150%) rotate(-30deg);
+            opacity: 0;
+        }
+
+        .swipe-card.swiping-right {
+            transform: translateX(150%) rotate(30deg);
+            opacity: 0;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #FF8E8E);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--card);
+            color: var(--fg);
+            border: 1px solid var(--border);
+            padding: 14px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: var(--card-hover);
+            border-color: var(--accent);
+        }
+
+        .action-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .action-btn.skip {
+            background: rgba(255, 107, 107, 0.1);
+            color: var(--accent);
+            border: 2px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .action-btn.skip:hover {
+            background: var(--accent);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .action-btn.like {
+            background: rgba(78, 205, 196, 0.1);
+            color: var(--accent-secondary);
+            border: 2px solid rgba(78, 205, 196, 0.3);
+        }
+
+        .action-btn.like:hover {
+            background: var(--accent-secondary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Form Inputs */
+        .form-input {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            color: var(--fg);
+            width: 100%;
+            transition: all 0.3s ease;
+            font-family: 'Noto Sans Sinhala', sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--fg-muted);
+        }
+
+        /* Chat */
+        .chat-container {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .message-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            margin-bottom: 8px;
+            animation: messageIn 0.3s ease;
+        }
+
+        .message-bubble.sent {
+            background: linear-gradient(135deg, var(--accent), #FF8E8E);
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-bubble.received {
+            background: var(--card);
+            border-bottom-left-radius: 4px;
+        }
+
+        @keyframes messageIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Match Modal */
+        .match-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .match-modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .match-content {
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .match-modal.active .match-content {
+            transform: scale(1);
+        }
+
+        .match-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 20px rgba(255, 107, 107, 0);
+            }
+        }
+
+        /* Page Transitions */
+        .page {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Photo Grid */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .photo-item {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .photo-item:hover {
+            transform: scale(1.05);
+        }
+
+        /* Subscription Card */
+        .sub-card {
+            background: linear-gradient(135deg, var(--card) 0%, var(--card-hover) 100%);
+            border-radius: 24px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sub-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+        }
+
+        .sub-card.popular::after {
+            content: 'ජනප්‍රියම';
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background: var(--accent);
+            color: white;
+            padding: 4px 40px;
+            font-size: 12px;
+            font-weight: 600;
+            transform: rotate(45deg);
+        }
+
+        /* Online Indicator */
+        .online-indicator {
+            width: 12px;
+            height: 12px;
+            background: var(--success);
+            border-radius: 50%;
+            border: 2px solid var(--card);
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--fg-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .mobile-nav {
+                display: flex;
+            }
+            .desktop-nav {
+                display: none;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-nav {
+                display: none;
+            }
+            .desktop-nav {
+                display: flex;
+            }
+        }
+
+        /* Stagger Animation */
+        .stagger-item {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .stagger-item.visible {
+            animation: staggerIn 0.5s ease forwards;
+        }
+
+        @keyframes staggerIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-pattern"></div>
+    <div class="floating-hearts" id="floatingHearts"></div>
+
+    <!-- Navigation -->
+    <nav class="nav-container fixed top-0 left-0 right-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="#" class="flex items-center gap-2" onclick="showPage('home')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-secondary)] flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold font-display">ChatNMeet</span>
+                </a>
+
+                <!-- Desktop Nav -->
+                <div class="desktop-nav items-center gap-8">
+                    <a href="#" class="nav-item active" data-page="home" onclick="showPage('home')">මුල් පිටුව</a>
+                    <a href="#" class="nav-item" data-page="browse" onclick="showPage('browse')">සොයන්න</a>
+                    <a href="#" class="nav-item" data-page="matches" onclick="showPage('matches')">මගේ ගැලපුම්</a>
+                    <a href="#" class="nav-item" data-page="chat" onclick="showPage('chat')">පණිවිඩ</a>
+                    <a href="#" class="nav-item" data-page="profile" onclick="showPage('profile')">මගේ පැතිකඩ</a>
+                </div>
+
+                <!-- Auth Buttons -->
+                <div class="flex items-center gap-3" id="authButtons">
+                    <button class="btn-secondary text-sm" onclick="showPage('login')">ඇතුළු වන්න</button>
+                    <button class="btn-primary text-sm" onclick="showPage('register')">ලියාපදිංචි වන්න</button>
+                </div>
+
+                <!-- User Menu (hidden by default) -->
+                <div class="hidden items-center gap-3" id="userMenu">
+                    <div class="flex items-center gap-2 cursor-pointer" onclick="showPage('profile')">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" class="w-10 h-10 rounded-full object-cover">
+                        <span class="font-medium" id="userName">Kasun</span>
+                    </div>
+                    <button class="text-[var(--fg-muted)] hover:text-[var(--accent)]" onclick="logout()">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Bottom Nav -->
+    <nav class="mobile-nav fixed bottom-0 left-0 right-0 bg-[var(--card)] border-t border-[var(--border)] z-50 justify-around py-3 px-4">
+        <button class="flex flex-col items-center gap-1 text-[var(--accent)]" onclick="showPage('home')">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+            <span class="text-xs">මුල් පිටුව</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-[var(--fg-muted)]" onclick="showPage('browse')">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <span class="text-xs">සොයන්න</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-[var(--fg-muted)]" onclick="showPage('matches')">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            <span class="text-xs">ගැලපුම්</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-[var(--fg-muted)]" onclick="showPage('chat')">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span class="text-xs">පණිවිඩ</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-[var(--fg-muted)]" onclick="showPage('profile')">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span class="text-xs">පැතිකඩ</span>
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-20 pb-24 md:pb-8 px-4 max-w-6xl mx-auto">
+        
+        <!-- HOME PAGE -->
+        <div id="page-home" class="page active">
+            <section class="min-h-[80vh] flex items-center">
+                <div class="grid md:grid-cols-2 gap-12 items-center w-full">
+                    <div class="stagger-item">
+                        <div class="inline-flex items-center gap-2 bg-[var(--card)] px-4 py-2 rounded-full mb-6 border border-[var(--border)]">
+                            <span class="w-2 h-2 bg-[var(--success)] rounded-full animate-pulse"></span>
+                            <span class="text-sm text-[var(--fg-muted)]">ශ්‍රී ලංකාවේ පරිශීලකයින් 10,000+ ක් දැන් online</span>
+                        </div>
+                        <h1 class="text-4xl md:text-6xl font-bold font-display leading-tight mb-6">
+                            ඔබේ <span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]">ආදරය</span><br>
+                            මෙතනින් පටන් ගනී
+                        </h1>
+                        <p class="text-lg text-[var(--fg-muted)] mb-8 leading-relaxed">
+                            ඔබ අසල ජීවත් වන නව මිනිසුන් හමුවන්න. ගැලපෙන පුද්ගලයින් සමඟ සම්බන්ධ වන්න. ඔබේ කතාව අදුරු ආදරයක් බවට පත් කරන්න.
+                        </p>
+                        <div class="flex flex-wrap gap-4">
+                            <button class="btn-primary text-lg" onclick="showPage('register')">නොමිලේ ලියාපදිංචි වන්න</button>
+                            <button class="btn-secondary text-lg" onclick="showPage('browse')">පැතිකඩ බලන්න</button>
+                        </div>
+                    </div>
+                    <div class="stagger-item relative">
+                        <div class="relative">
+                            <!-- Main Image -->
+                            <div class="relative z-10">
+                                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&h=600&fit=crop" class="w-full max-w-md mx-auto rounded-3xl shadow-2xl object-cover">
+                                <div class="absolute bottom-4 left-4 right-4 bg-[var(--card)] backdrop-blur-lg p-4 rounded-2xl border border-[var(--border)]">
+                                    <div class="flex items-center gap-3">
+                                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" class="w-12 h-12 rounded-full object-cover">
+                                        <div>
+                                            <h3 class="font-semibold">නිමාලි, 24</h3>
+                                            <p class="text-sm text-[var(--fg-muted)]">කොළඹ වෙතින්</p>
+                                        </div>
+                                        <button class="ml-auto btn-primary py-2 px-4 text-sm">කැමතියි</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Floating Cards -->
+                            <div class="absolute -left-8 top-20 bg-[var(--card)] p-4 rounded-2xl shadow-xl border border-[var(--border)] animate-bounce" style="animation-duration: 3s;">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-10 h-10 rounded-full bg-[var(--accent-secondary)] flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold">නව ගැලපුමක්!</p>
+                                        <p class="text-xs text-[var(--fg-muted)]">දැන් පණිවිඩ යවන්න</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="absolute -right-4 bottom-40 bg-[var(--card)] p-3 rounded-xl shadow-xl border border-[var(--border)]">
+                                <div class="flex -space-x-2">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face" class="w-8 h-8 rounded-full border-2 border-[var(--card)]">
+                                    <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=50&h=50&fit=crop&crop=face" class="w-8 h-8 rounded-full border-2 border-[var(--card)]">
+                                    <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=50&h=50&fit=crop&crop=face" class="w-8 h-8 rounded-full border-2 border-[var(--card)]">
+                                    <div class="w-8 h-8 rounded-full bg-[var(--accent)] flex items-center justify-center text-xs font-bold border-2 border-[var(--card)]">+5k</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="py-20">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold font-display mb-4">පහසුම ක්‍රමයෙන් ආදරය සොයන්න</h2>
+                    <p class="text-[var(--fg-muted)] max-w-2xl mx-auto">ChatNMeet හරහා ඔබට පුළුවන් ලඟම ඉන්න අය හමුවෙලා, ඔවුන් සමඟ කතා කරන්න</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="profile-card p-8 text-center stagger-item">
+                        <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-secondary)] flex items-center justify-center">
+                            <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">පැතිකඩ සාදන්න</h3>
+                        <p class="text-[var(--fg-muted)]">ඔබේ ඡායාරූප සහ තොරතුරු එකතු කරන්න. අනෙක් අයට ඔබව හඳුනාගන්න පුළුවන් වේවි.</p>
+                    </div>
+                    <div class="profile-card p-8 text-center stagger-item">
+                        <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[var(--accent-secondary)] to-[var(--success)] flex items-center justify-center">
+                            <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">අසල්වැසියන් සොයන්න</h3>
+                        <p class="text-[var(--fg-muted)]">ඔබ අසල ජීවත් වන පුද්ගලයින් සොයා ගන්න. Location based matching.</p>
+                    </div>
+                    <div class="profile-card p-8 text-center stagger-item">
+                        <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[var(--warning)] to-[var(--accent)] flex items-center justify-center">
+                            <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">කතා කරන්න</h3>
+                        <p class="text-[var(--fg-muted)]">ගැලපුමක් සෑදුණු පසු නොමිලේ පණිවිඩ හුවමාරු කරන්න.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="py-16 bg-[var(--card)] rounded-3xl border border-[var(--border)]">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 px-8">
+                    <div class="text-center">
+                        <p class="text-4xl font-bold font-display text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]">50K+</p>
+                        <p class="text-[var(--fg-muted)] mt-2">සක්‍රීය පරිශීලකයින්</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-4xl font-bold font-display text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-secondary)] to-[var(--success)]">10K+</p>
+                        <p class="text-[var(--fg-muted)] mt-2">ගැලපුම්</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-4xl font-bold font-display text-transparent bg-clip-text bg-gradient-to-r from-[var(--success)] to-[var(--warning)]">1M+</p>
+                        <p class="text-[var(--fg-muted)] mt-2">පණිවිඩ</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-4xl font-bold font-display text-transparent bg-clip-text bg-gradient-to-r from-[var(--warning)] to-[var(--accent)]">25</p>
+                        <p class="text-[var(--fg-muted)] mt-2">නගර වලින්</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- REGISTER PAGE -->
+        <div id="page-register" class="page">
+            <div class="max-w-md mx-auto py-12">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold font-display mb-2">ලියාපදිංචි වන්න</h2>
+                    <p class="text-[var(--fg-muted)]">ඔබේ ගිණුම සාදා ආදරය සොයන්න පටන් ගන්න</p>
+                </div>
+                <div class="profile-card p-8">
+                    <form id="registerForm" onsubmit="handleRegister(event)">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">සම්පූර්ණ නම</label>
+                                <input type="text" class="form-input" placeholder="ඔබේ නම ඇතුළත් කරන්න" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">ඊමේල්</label>
+                                <input type="email" class="form-input" placeholder="email@example.com" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">මුරපදය</label>
+                                <input type="password" class="form-input" placeholder="අවම වශයෙන් අකුරු 8ක්" required minlength="8">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">ලිංගය</label>
+                                <select class="form-input">
+                                    <option value="">තෝරන්න</option>
+                                    <option value="male">පිරිමි</option>
+                                    <option value="female">ගැහැණු</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">උපන් දිනය</label>
+                                <input type="date" class="form-input" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">ස්ථානය</label>
+                                <select class="form-input">
+                                    <option value="">නගරය තෝරන්න</option>
+                                    <option value="colombo">කොළඹ</option>
+                                    <option value="kandy">මහනුවර</option>
+                                    <option value="galle">ගාල්ල</option>
+                                    <option value="jaffna">යාපනය</option>
+                                    <option value="negombo">නිගම්බෝ</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-primary w-full mt-6">ලියාපදිංචි වන්න</button>
+                        </div>
+                    </form>
+                    <p class="text-center text-[var(--fg-muted)] mt-6">
+                        දැනටමත් ගිණුමක් තිබේද? <a href="#" class="text-[var(--accent)] hover:underline" onclick="showPage('login')">ඇතුළු වන්න</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGIN PAGE -->
+        <div id="page-login" class="page">
+            <div class="max-w-md mx-auto py-12">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold font-display mb-2">ඇතුළු වන්න</h2>
+                    <p class="text-[var(--fg-muted)]">ඔබේ ගිණුමට ප්‍රවේශ වන්න</p>
+                </div>
+                <div class="profile-card p-8">
+                    <form id="loginForm" onsubmit="handleLogin(event)">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">ඊමේල්</label>
+                                <input type="email" class="form-input" placeholder="email@example.com" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">මුරපදය</label>
+                                <input type="password" class="form-input" placeholder="ඔබේ මුරපදය" required>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" class="w-4 h-4 rounded">
+                                    <span class="text-sm">මතක තබා ගන්න</span>
+                                </label>
+                                <a href="#" class="text-sm text-[var(--accent)] hover:underline">මුරපදය අමතක වුණාද?</a>
+                            </div>
+                            <button type="submit" class="btn-primary w-full mt-6">ඇතුළු වන්න</button>
+                        </div>
+                    </form>
+                    <p class="text-center text-[var(--fg-muted)] mt-6">
+                        ගිණුමක් නැතිද? <a href="#" class="text-[var(--accent)] hover:underline" onclick="showPage('register')">ලියාපදිංචි වන්න</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- BROWSE PAGE -->
+        <div id="page-browse" class="page">
+            <div class="max-w-lg mx-auto py-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold font-display mb-2">අසල්වැසියන් සොයන්න</h2>
+                    <p class="text-[var(--fg-muted)]">ඔබ අසල ජීවත් වන පුද්ගලයින්</p>
+                </div>
+                
+                <!-- Swipe Card -->
+                <div id="swipeContainer" class="relative">
+                    <div id="currentCard" class="swipe-card">
+                        <div class="relative">
+                            <img id="browseImage" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&h=600&fit=crop" class="w-full h-[450px] object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                            <div class="absolute bottom-0 left-0 right-0 p-6">
+                                <div class="flex items-end justify-between">
+                                    <div>
+                                        <h3 id="browseName" class="text-2xl font-bold">සදුනි, 23</h3>
+                                        <p id="browseLocation" class="text-[var(--fg-muted)] flex items-center gap-1 mt-1">
+                                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                                <circle cx="12" cy="10" r="3"/>
+                                            </svg>
+                                            කොළඹ, 5km දුරින්
+                                        </p>
+                                        <p id="browseBio" class="text-sm text-[var(--fg-muted)] mt-2">සංගීතයට කැමති, nature lover</p>
+                                    </div>
+                                    <button class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center" onclick="showProfileDetail()">
+                                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <path d="M12 16v-4"/>
+                                            <path d="M12 8h.01"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-center gap-6 mt-8">
+                    <button class="action-btn skip" onclick="handleSkip()">
+                        <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                    <button class="action-btn like" onclick="handleLike()">
+                        <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MATCHES PAGE -->
+        <div id="page-matches" class="page">
+            <div class="py-8">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold font-display mb-2">මගේ ගැලපුම්</h2>
+                    <p class="text-[var(--fg-muted)]">ඔබ ගැලපුණු පුද්ගලයින්</p>
+                </div>
+
+                <div id="matchesGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- Matches will be populated here -->
+                </div>
+
+                <div id="noMatches" class="text-center py-20 hidden">
+                    <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-[var(--card)] flex items-center justify-center">
+                        <svg class="w-10 h-10 text-[var(--fg-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">ගැලපුම් නැත</h3>
+                    <p class="text-[var(--fg-muted)] mb-6">තවම කිසිදා ගැලපුණු අය නැත</p>
+                    <button class="btn-primary" onclick="showPage('browse')">අලුත් අය සොයන්න</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHAT PAGE -->
+        <div id="page-chat" class="page">
+            <div class="py-8">
+                <div class="grid md:grid-cols-3 gap-6 h-[calc(100vh-180px)]">
+                    <!-- Conversations List -->
+                    <div class="chat-container md:col-span-1 overflow-hidden flex flex-col">
+                        <div class="p-4 border-b border-[var(--border)]">
+                            <h3 class="text-lg font-semibold">පණිවිඩ</h3>
+                        </div>
+                        <div class="flex-1 overflow-y-auto" id="conversationsList">
+                            <!-- Conversations will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Chat Window -->
+                    <div class="chat-container md:col-span-2 overflow-hidden flex flex-col">
+                        <div id="chatHeader" class="p-4 border-b border-[var(--border)] flex items-center gap-3">
+                            <img id="chatAvatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1">
+                                <h4 id="chatName" class="font-semibold">නිමාලි</h4>
+                                <p class="text-sm text-[var(--success)]">Online</p>
+                            </div>
+                            <button class="p-2 hover:bg-[var(--card)] rounded-lg transition-colors" onclick="shareLocation()">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                            </button>
+                            <button class="p-2 hover:bg-[var(--card)] rounded-lg transition-colors">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="1"/>
+                                    <circle cx="19" cy="12" r="1"/>
+                                    <circle cx="5" cy="12" r="1"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3">
+                            <!-- Messages will be populated here -->
+                        </div>
+
+                        <div class="p-4 border-t border-[var(--border)]">
+                            <div class="flex items-center gap-3">
+                                <button class="p-2 hover:bg-[var(--card)] rounded-lg transition-colors" onclick="document.getElementById('imageInput').click()">
+                                    <svg class="w-5 h-5 text-[var(--fg-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                                        <polyline points="21 15 16 10 5 21"/>
+                                    </svg>
+                                </button>
+                                <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="handleImageUpload(event)">
+                                <input type="text" id="messageInput" class="form-input flex-1" placeholder="පණිවිඩයක් ටයිප් කරන්න..." onkeypress="handleMessageKeypress(event)">
+                                <button class="btn-primary py-3 px-4" onclick="sendMessage()">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="22" y1="2" x2="11" y2="13"/>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE PAGE -->
+        <div id="page-profile" class="page">
+            <div class="max-w-2xl mx-auto py-8">
+                <div class="profile-card overflow-hidden">
+                    <!-- Cover & Avatar -->
+                    <div class="relative h-48 bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]">
+                        <div class="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
+                            <div class="relative">
+                                <img id="profileAvatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" class="w-32 h-32 rounded-full border-4 border-[var(--card)] object-cover">
+                                <button class="absolute bottom-0 right-0 w-10 h-10 bg-[var(--accent)] rounded-full flex items-center justify-center" onclick="document.getElementById('avatarInput').click()">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                        <circle cx="12" cy="13" r="4"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-20 px-8 pb-8">
+                        <div class="text-center mb-8">
+                            <h2 id="profileName" class="text-2xl font-bold">කසුන් පෙරේරා</h2>
+                            <p class="text-[var(--fg-muted)]">24 අවුරුදු, කොළඹ</p>
+                        </div>
+
+                        <!-- Photo Grid -->
+                        <div class="mb-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-semibold">ඡායාරූප</h3>
+                                <button class="text-sm text-[var(--accent)]" onclick="document.getElementById('photoInput').click()">+ එකතු කරන්න</button>
+                                <input type="file" id="photoInput" class="hidden" accept="image/*" multiple>
+                            </div>
+                            <div class="photo-grid">
+                                <div class="photo-item">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" class="w-full h-full object-cover">
+                                </div>
+                                <div class="photo-item">
+                                    <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop" class="w-full h-full object-cover">
+                                </div>
+                                <div class="photo-item">
+                                    <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop" class="w-full h-full object-cover">
+                                </div>
+                                <div class="photo-item bg-[var(--card)] flex items-center justify-center cursor-pointer hover:bg-[var(--card-hover)]" onclick="document.getElementById('photoInput').click()">
+                                    <svg class="w-8 h-8 text-[var(--fg-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profile Form -->
+                        <form id="profileForm" class="space-y-4">
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">නම</label>
+                                    <input type="text" class="form-input" value="කසුන් පෙරේරා">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">වයස</label>
+                                    <input type="number" class="form-input" value="24">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">ස්ථානය</label>
+                                <select class="form-input">
+                                    <option value="colombo" selected>කොළඹ</option>
+                                    <option value="kandy">මහනුවර</option>
+                                    <option value="galle">ගාල්ල</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">මගේ ගැන</label>
+                                <textarea class="form-input h-24" placeholder="ඔබේ ගැන ටිකක් කියන්න...">සංගීතයට හා චිත්‍ර කලාවට කැමති කෙනෙක්. nature walks යනවා, good conversations ප්‍රිය කරනවා.</textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">ආමන්ත්‍රණ</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-3 py-1 bg-[var(--card)] rounded-full text-sm">සංගීතය</span>
+                                    <span class="px-3 py-1 bg-[var(--card)] rounded-full text-sm">චිත්‍ර කලාව</span>
+                                    <span class="px-3 py-1 bg-[var(--card)] rounded-full text-sm">සංචාරය</span>
+                                    <span class="px-3 py-1 bg-[var(--card)] rounded-full text-sm border border-dashed border-[var(--border)] cursor-pointer">+ එකතු කරන්න</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-4 pt-4">
+                                <button type="submit" class="btn-primary flex-1">සුරකින්න</button>
+                                <button type="button" class="btn-secondary" onclick="showPage('subscription')">Premium ගන්න</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUBSCRIPTION PAGE -->
+        <div id="page-subscription" class="page">
+            <div class="max-w-4xl mx-auto py-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold font-display mb-2">Premium සාමාජිකත්වය</h2>
+                    <p class="text-[var(--fg-muted)]">සියලුම පහසුකම් භුක්ති විඳින්න</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Free Plan -->
+                    <div class="sub-card">
+                        <h3 class="text-xl font-bold mb-2">නොමිලේ</h3>
+                        <p class="text-[var(--fg-muted)] mb-6">මූලික පහසුකම්</p>
+                        <div class="text-3xl font-bold font-display mb-6">$0<span class="text-lg text-[var(--fg-muted)]">/මාසය</span></div>
+                        <ul class="space-y-3 mb-8">
+                            <li class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-[var(--success)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>පැතිකඩ බැලීම</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-[var(--success)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>දෛනික likes 5ක්</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-[var(--fg-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                                <span class="text-[var(--fg-muted)]">පණිවිඩ යැවීම</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-[var(--fg-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                                <span class="text-[var(--fg-muted)]">Location sharing</span>
+                            </li>
+                        </ul>
+                        <button class="btn-secondary w-full">දැනට ඇති සැලැස්ම</button>
+                    </div>
+
+                    <!-- Premium Plan -->
+                    <div class="sub-card popular">
+                        <h3 class="text-xl font-bold mb-2">Premium</h3>
+                        <p class="text-[var(--fg-muted)] mb-6">සියලුම පහසුකම්</p>
+                        <div class="text-3xl font-bold font-display mb-6">$1<span class="text-lg text-[var(--fg-muted)]">/මාසය</span></div>
+                        <ul class="space-y-3 mb-8">
+                            <li class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-[var(--success)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>අසීමිත likes</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-[var(--success)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>අසීමිත පණිවිඩ</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-[var(--success)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>Location sharing</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-[var(--success)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>Photo sharing</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-[var(--success)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>See who liked you</span>
+                            </li>
+                        </ul>
+                        <button class="btn-primary w-full" onclick="handleSubscription()">දැන් ගන්න</button>
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="mt-12 text-center">
+                    <p class="text-[var(--fg-muted)] mb-4">ගෙවීම් ක්‍රම</p>
+                    <div class="flex justify-center gap-6">
+                        <div class="bg-[var(--card)] px-6 py-3 rounded-lg border border-[var(--border)]">
+                            <span class="font-semibold text-lg">Stripe</span>
+                        </div>
+                        <div class="bg-[var(--card)] px-6 py-3 rounded-lg border border-[var(--border)]">
+                            <span class="font-semibold text-lg">PayPal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Match Modal -->
+    <div id="matchModal" class="match-modal">
+        <div class="match-content">
+            <div class="relative inline-block mb-6">
+                <img id="matchUserAvatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face" class="match-avatar">
+                <div class="absolute -right-4 top-1/2 transform -translate-y-1/2">
+                    <div class="w-16 h-16 rounded-full bg-[var(--accent)] flex items-center justify-center text-3xl animate-bounce">
+                        <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold font-display mb-2">ගැලපුමක්!</h2>
+            <p class="text-[var(--fg-muted)] mb-8">ඔබ සහ <span id="matchUserName">නිමාලි</span> ගැලපුණා</p>
+            <div class="flex gap-4 justify-center">
+                <button class="btn-secondary" onclick="closeMatchModal()">පසුව කතා කරන්න</button>
+                <button class="btn-primary" onclick="startChatFromMatch()">දැන් පණිවිඩ යවන්න</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // DATA INITIALIZATION (BEFORE ANY FUNCTION CALLS)
+        // ============================================
+        
+        // Sample profiles data - Sri Lankan names
+        const profiles = [
+            {
+                id: 1,
+                name: "නිමාලි",
+                age: 24,
+                location: "කොළඹ",
+                distance: "3km",
+                bio: "සංගීතයට කැමති, nature lover 🌿",
+                image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&h=600&fit=crop&crop=face",
+                interests: ["සංගීතය", "චිත්‍ර", "සංචාරය"],
+                online: true
+            },
+            {
+                id: 2,
+                name: "සදුනි",
+                age: 23,
+                location: "කොළඹ",
+                distance: "5km",
+                bio: "Books and coffee kind of person",
+                image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&h=600&fit=crop&crop=face",
+                interests: ["කියවීම", "චිත්‍රපට", "සංචාරය"],
+                online: true
+            },
+            {
+                id: 3,
+                name: "කසුනි",
+                age: 25,
+                location: "මහනුවර",
+                distance: "2km",
+                bio: "Travel enthusiast, foodie",
+                image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&h=600&fit=crop&crop=face",
+                interests: ["සංචාරය", "ආහාර", "ඡායාරූප"],
+                online: false
+            },
+            {
+                id: 4,
+                name: "තරිඳු",
+                age: 26,
+                location: "ගාල්ල",
+                distance: "8km",
+                bio: "Beach vibes only",
+                image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&h=600&fit=crop&crop=face",
+                interests: ["මුහුද", "ස්කේට්බෝඩිම්", "සංගීතය"],
+                online: true
+            },
+            {
+                id: 5,
+                name: "දිල්හාරා",
+                age: 22,
+                location: "කොළඹ",
+                distance: "4km",
+                bio: "Dance is my passion",
+                image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=500&h=600&fit=crop&crop=face",
+                interests: ["නැටුම්", "නාට්‍ය", "සංගීතය"],
+                online: false
+            },
+            {
+                id: 6,
+                name: "මධුෂා",
+                age: 27,
+                location: "නිගම්බෝ",
+                distance: "6km",
+                bio: "Yoga instructor, fitness enthusiast",
+                image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=500&h=600&fit=crop&crop=face",
+                interests: ["යෝග", "යෝග්‍යතාව", "ආරෝග්‍ය"],
+                online: true
+            }
+        ];
+
+        // State variables - initialize before use
+        let currentProfileIndex = 0;
+        let matches = [];
+        let currentChatUser = null;
+        let currentUser = null;
+        let messages = {};
+        let likes = [];
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initFloatingHearts();
+            initStaggerAnimation();
+            loadProfile();
+            updateMatchesUI();
+            initConversations();
+            initChat();
+        });
+
+        // ============================================
+        // FLOATING HEARTS BACKGROUND
+        // ============================================
+        
+        function initFloatingHearts() {
+            const container = document.getElementById('floatingHearts');
+            if (!container) return;
+            
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart-particle';
+                heart.innerHTML = `<svg viewBox="0 0 24 24" fill="rgba(255,107,107,0.3)"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDelay = Math.random() * 20 + 's';
+                heart.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(heart);
+            }
+        }
+
+        // ============================================
+        // STAGGER ANIMATION
+        // ============================================
+        
+        function initStaggerAnimation() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.classList.add('visible');
+                        }, index * 100);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.stagger-item').forEach(item => {
+                observer.observe(item);
+            });
+        }
+
+        // ============================================
+        // PAGE NAVIGATION
+        // ============================================
+        
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show target page
+            const targetPage = document.getElementById('page-' + pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+            
+            // Update nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === pageId) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Special handling for certain pages
+            if (pageId === 'browse') {
+                loadProfile();
+            }
+        }
+
+        // ============================================
+        // AUTH FUNCTIONS
+        // ============================================
+        
+        function handleRegister(event) {
+            event.preventDefault();
+            currentUser = {
+                name: 'කසුන් පෙරේරා',
+                email: 'kasun@example.com'
+            };
+            showLoggedInState();
+            showPage('profile');
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            currentUser = {
+                name: 'කසුන් පෙරේරා',
+                email: 'kasun@example.com'
+            };
+            showLoggedInState();
+            showPage('browse');
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('authButtons').classList.remove('hidden');
+            document.getElementById('authButtons').classList.add('flex');
+            document.getElementById('userMenu').classList.add('hidden');
+            document.getElementById('userMenu').classList.remove('flex');
+            showPage('home');
+        }
+
+        function showLoggedInState() {
+            document.getElementById('authButtons').classList.add('hidden');
+            document.getElementById('authButtons').classList.remove('flex');
+            document.getElementById('userMenu').classList.remove('hidden');
+            document.getElementById('userMenu').classList.add('flex');
+        }
+
+        // ============================================
+        // BROWSE PROFILES
+        // ============================================
+        
+        function loadProfile() {
+            if (currentProfileIndex >= profiles.length) {
+                currentProfileIndex = 0;
+            }
+            
+            const profile = profiles[currentProfileIndex];
+            const browseImage = document.getElementById('browseImage');
+            const browseName = document.getElementById('browseName');
+            const browseLocation = document.getElementById('browseLocation');
+            const browseBio = document.getElementById('browseBio');
+            
+            if (browseImage) browseImage.src = profile.image;
+            if (browseName) browseName.textContent = `${profile.name}, ${profile.age}`;
+            if (browseLocation) browseLocation.innerHTML = `
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+                ${profile.location}, ${profile.distance} දුරින්
+            `;
+            if (browseBio) browseBio.textContent = profile.bio;
+        }
+
+        function handleLike() {
+            const card = document.getElementById('currentCard');
+            if (!card) return;
+            
+            const profile = profiles[currentProfileIndex];
+            
+            // Add swiping animation
+            card.classList.add('swiping-right');
+            
+            // Check for mutual like (simulate match)
+            const isMatch = Math.random() > 0.5; // 50% chance for demo
+            
+            setTimeout(() => {
+                if (isMatch && !matches.find(m => m.id === profile.id)) {
+                    matches.push(profile);
+                    showMatchModal(profile);
+                    updateMatchesUI();
+                    initConversations();
+                }
+                
+                currentProfileIndex++;
+                loadProfile();
+                card.classList.remove('swiping-right');
+            }, 500);
+        }
+
+        function handleSkip() {
+            const card = document.getElementById('currentCard');
+            if (!card) return;
+            
+            card.classList.add('swiping-left');
+            
+            setTimeout(() => {
+                currentProfileIndex++;
+                loadProfile();
+                card.classList.remove('swiping-left');
+            }, 500);
+        }
+
+        // ============================================
+        // MATCH MODAL
+        // ============================================
+        
+        function showMatchModal(profile) {
+            const modal = document.getElementById('matchModal');
+            const avatar = document.getElementById('matchUserAvatar');
+            const name = document.getElementById('matchUserName');
+            
+            if (avatar) avatar.src = profile.image;
+            if (name) name.textContent = profile.name;
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeMatchModal() {
+            const modal = document.getElementById('matchModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function startChatFromMatch() {
+            if (matches.length > 0) {
+                currentChatUser = matches[matches.length - 1];
+                initChat();
+            }
+            closeMatchModal();
+            showPage('chat');
+        }
+
+        // ============================================
+        // MATCHES PAGE
+        // ============================================
+        
+        function updateMatchesUI() {
+            const grid = document.getElementById('matchesGrid');
+            const noMatches = document.getElementById('noMatches');
+            
+            if (!grid || !noMatches) return;
+            
+            if (matches.length === 0) {
+                grid.classList.add('hidden');
+                noMatches.classList.remove('hidden');
+                return;
+            }
+            
+            grid.classList.remove('hidden');
+            noMatches.classList.add('hidden');
+            
+            grid.innerHTML = matches.map(match => `
+                <div class="profile-card cursor-pointer overflow-hidden" onclick="openChat(${match.id})">
+                    <div class="relative">
+                        <img src="${match.image}" class="w-full aspect-[3/4] object-cover">
+                        ${match.online ? '<div class="online-indicator"></div>' : ''}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                        <div class="absolute bottom-0 left-0 right-0 p-4">
+                            <h3 class="font-semibold">${match.name}, ${match.age}</h3>
+                            <p class="text-sm text-[var(--fg-muted)]">${match.location}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ============================================
+        // CHAT SYSTEM
+        // ============================================
+        
+        function initConversations() {
+            const list = document.getElementById('conversationsList');
+            if (!list) return;
+            
+            if (matches.length === 0) {
+                list.innerHTML = `
+                    <div class="p-8 text-center">
+                        <p class="text-[var(--fg-muted)]">තවම කතා කළ අය නැත</p>
+                        <button class="btn-primary mt-4" onclick="showPage('browse')">අලුත් අය සොයන්න</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = matches.map(match => `
+                <div class="flex items-center gap-3 p-4 cursor-pointer hover:bg-[var(--card)] transition-colors border-b border-[var(--border)]" onclick="openChat(${match.id})">
+                    <div class="relative">
+                        <img src="${match.image}" class="w-12 h-12 rounded-full object-cover">
+                        ${match.online ? '<div class="online-indicator"></div>' : ''}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-medium truncate">${match.name}</h4>
+                        <p class="text-sm text-[var(--fg-muted)] truncate">${messages[match.id] ? messages[match.id][messages[match.id].length - 1]?.text || 'පණිවිඩ යවන්න' : 'පණිවිඩ යවන්න'}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openChat(userId) {
+            currentChatUser = matches.find(m => m.id === userId);
+            if (!currentChatUser && matches.length > 0) {
+                currentChatUser = matches[0];
+            }
+            initChat();
+            showPage('chat');
+        }
+
+        function initChat() {
+            if (!currentChatUser && matches.length > 0) {
+                currentChatUser = matches[0];
+            }
+            
+            if (!currentChatUser) return;
+            
+            const chatAvatar = document.getElementById('chatAvatar');
+            const chatName = document.getElementById('chatName');
+            const chatMessages = document.getElementById('chatMessages');
+            
+            if (chatAvatar) chatAvatar.src = currentChatUser.image;
+            if (chatName) chatName.textContent = currentChatUser.name;
+            
+            // Initialize messages for this user if not exists
+            if (!messages[currentChatUser.id]) {
+                messages[currentChatUser.id] = [
+                    { text: 'හායි! කොහොමද?', sent: false, time: '10:30' },
+                    { text: 'ඔයාගේ පැතිකඩ බැලුවා, ලස්සනයි!', sent: false, time: '10:31' }
+                ];
+            }
+            
+            if (chatMessages) {
+                chatMessages.innerHTML = messages[currentChatUser.id].map(msg => `
+                    <div class="message-bubble ${msg.sent ? 'sent' : 'received'}">
+                        ${msg.image ? `<img src="${msg.image}" class="max-w-full rounded-lg mb-2">` : ''}
+                        ${msg.text ? `<p>${msg.text}</p>` : ''}
+                        ${msg.location ? `
+                            <div class="bg-[var(--bg)] rounded-lg p-2 mt-2">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-[var(--accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                        <circle cx="12" cy="10" r="3"/>
+                                    </svg>
+                                    <span>${msg.location}</span>
+                                </div>
+                            </div>
+                        ` : ''}
+                        <p class="text-xs opacity-60 mt-1">${msg.time}</p>
+                    </div>
+                `).join('');
+                
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            if (!input || !currentChatUser) return;
+            
+            const text = input.value.trim();
+            if (!text) return;
+            
+            const now = new Date();
+            const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            
+            if (!messages[currentChatUser.id]) {
+                messages[currentChatUser.id] = [];
+            }
+            
+            messages[currentChatUser.id].push({
+                text: text,
+                sent: true,
+                time: time
+            });
+            
+            input.value = '';
+            initChat();
+            
+            // Simulate reply
+            setTimeout(() => {
+                if (currentChatUser) {
+                    const replies = [
+                        'හොඳයි!',
+                        'ආදරෙයි!',
+                        'කොහොමද ඔයා?',
+                        'ලස්සන දවසක්!',
+                        'ඔව් නියමයි!'
+                    ];
+                    if (!messages[currentChatUser.id]) {
+                        messages[currentChatUser.id] = [];
+                    }
+                    messages[currentChatUser.id].push({
+                        text: replies[Math.floor(Math.random() * replies.length)],
+                        sent: false,
+                        time: time
+                    });
+                    initChat();
+                }
+            }, 1000 + Math.random() * 2000);
+        }
+
+        function handleMessageKeypress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file || !currentChatUser) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const now = new Date();
+                const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                
+                if (!messages[currentChatUser.id]) {
+                    messages[currentChatUser.id] = [];
+                }
+                
+                messages[currentChatUser.id].push({
+                    image: e.target.result,
+                    sent: true,
+                    time: time
+                });
+                initChat();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function shareLocation() {
+            if (!currentChatUser) return;
+            
+            const now = new Date();
+            const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            
+            if (!messages[currentChatUser.id]) {
+                messages[currentChatUser.id] = [];
+            }
+            
+            messages[currentChatUser.id].push({
+                location: 'කොළඹ, ශ්‍රී ලංකාව',
+                sent: true,
+                time: time
+            });
+            initChat();
+        }
+
+        // ============================================
+        // SUBSCRIPTION
+        // ============================================
+        
+        function handleSubscription() {
+            alert('Payment integration සඳහා Stripe/PayPal API keys අවශ්‍යයි. මෙය demo version එකකි.');
+        }
+    </script>
+</body>
+</html>
